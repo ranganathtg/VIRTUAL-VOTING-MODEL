@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Online Voting System</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: url('https://www.shutterstock.com/image-vector/illustration-indian-people-hand-voting-260nw-2452678161.jpg')
+    no-repeat center center fixed;
+    background-size: cover;
+    text-align: center;
+    margin: 0;
+}
+
+header {
+    background: linear-gradient(90deg,#FF9933,#FFFFFF,#138808);
+    padding: 18px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.section {
+    background: rgba(255,255,255,0.9);
+    width: 60%;
+    margin: 30px auto;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.35);
+}
+
+input, button {
+    width: 90%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #007bff;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+button:hover { opacity: 0.9; }
+
+.hidden { display: none; }
+.success { color: green; font-weight: bold; }
+.error { color: red; font-weight: bold; }
+
+table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+th {
+    background: #0066cc;
+    color: white;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Online Voting System</header>
+
+<!-- STEP 1 -->
+<div id="voterIdSection" class="section">
+    <h2>Enter Voter ID</h2>
+    <input type="text" id="voterIdInput" placeholder="Enter Voter ID">
+    <button onclick="verifyVoterID()">Verify</button>
+    <p id="voterMsg"></p>
+</div>
+
+<!-- STEP 2 -->
+<div id="registerSection" class="section hidden">
+    <h2>Registration</h2>
+    <input type="text" id="regName" placeholder="Enter Name">
+    <input type="email" id="regEmail" placeholder="Enter Email">
+    <input type="password" id="regPass" placeholder="Enter Password">
+    <button onclick="registerUser()">Register</button>
+    <p id="regMsg"></p>
+</div>
+
+<!-- STEP 3 -->
+<div id="otpSection" class="section hidden">
+    <h2>OTP Verification</h2>
+    <input type="text" id="otpInput" placeholder="Enter OTP">
+    <button onclick="verifyOTP()">Verify OTP</button>
+    <p id="otpMsg"></p>
+</div>
+
+<!-- STEP 4 -->
+<div id="loginSection" class="section hidden">
+    <h2>Login</h2>
+    <input type="email" id="logEmail" placeholder="Enter Email">
+    <input type="password" id="logPass" placeholder="Enter Password">
+    <button onclick="loginUser()">Login</button>
+    <p id="logMsg"></p>
+</div>
+
+<!-- STEP 5 -->
+<div id="voteSection" class="section hidden">
+    <h2>Cast Your Vote</h2>
+    <p id="welcomeUser"></p>
+
+    <table>
+        <tr><th>Select</th><th>Candidate</th><th>Party</th><th>Symbol</th></tr>
+        <tr>
+            <td><input type="radio" name="candidate" value="A"></td>
+            <td>Modi</td><td>BJP</td>
+            <td><img class="logo" src="https://cdn.vectorstock.com/i/1000v/74/69/lotus-flower-symbol-political-party-sign-bjp-vector-50147469.jpg"></td>
+        </tr>
+        <tr>
+            <td><input type="radio" name="candidate" value="B"></td>
+            <td>Rahul</td><td>Congress</td>
+            <td><img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/7/78/Indian_National_Congress_logo.svg"></td>
+        </tr>
+        <tr>
+            <td><input type="radio" name="candidate" value="C"></td>
+            <td>Others</td><td>Independent</td>
+            <td><img class="logo" src="https://cdn-icons-png.flaticon.com/512/21/21294.png"></td>
+        </tr>
+    </table>
+
+    <button onclick="castVote()">Submit Vote</button>
+    <p id="voteMsg"></p>
+</div>
+
+<!-- RESULT -->
+<div id="resultSection" class="section hidden">
+    <h2>Live Results</h2>
+    <table>
+        <tr><th>Candidate</th><th>Votes</th></tr>
+        <tr><td>Modi</td><td id="votesA">0</td></tr>
+        <tr><td>Rahul</td><td id="votesB">0</td></tr>
+        <tr><td>Others</td><td id="votesC">0</td></tr>
+    </table>
+    <button onclick="goBack()">Go Back</button>
+</div>
+
+<script>
+const validVoters = ["xmk2201614","xmk2201615","xmk2201616"];
+let emailOTP;
+
+function show(id){
+    document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+if(!localStorage.getItem("votes")){
+    localStorage.setItem("votes", JSON.stringify({A:0,B:0,C:0}));
+}
+
+// STEP 1
+function verifyVoterID(){
+    let id = voterIdInput.value.trim().toLowerCase();
+    if(validVoters.includes(id)){
+        voterMsg.textContent = "Voter ID Verified";
+        voterMsg.className = "success";
+        show("registerSection");
+    } else {
+        voterMsg.textContent = "Invalid Voter ID";
+        voterMsg.className = "error";
+    }
+}
+
+// OTP DEMO
+function sendDemoOTP(name, email, otp){
+    alert(
+        "OTP DEMO\n\n" +
+        "Name: " + name + "\n" +
+        "Email: " + email + "\n\n" +
+        "Your OTP is: " + otp
+    );
+}
+
+// STEP 2
+function registerUser(){
+    if(!regName.value || !regEmail.value || !regPass.value){
+        regMsg.textContent = "All fields required";
+        regMsg.className = "error";
+        return;
+    }
+
+    emailOTP = Math.floor(1000 + Math.random()*9000);
+
+    localStorage.setItem("user", JSON.stringify({
+        name: regName.value,
+        email: regEmail.value,
+        pass: regPass.value,
+        verified: false,
+        voted: false
+    }));
+
+    sendDemoOTP(regName.value, regEmail.value, emailOTP);
+    show("otpSection");
+}
+
+// STEP 3
+function verifyOTP(){
+    if(otpInput.value == emailOTP){
+        let u = JSON.parse(localStorage.getItem("user"));
+        u.verified = true;
+        localStorage.setItem("user", JSON.stringify(u));
+        otpMsg.textContent = "OTP Verified Successfully";
+        otpMsg.className = "success";
+        show("loginSection");
+    } else {
+        otpMsg.textContent = "Invalid OTP";
+        otpMsg.className = "error";
+    }
+}
+
+// STEP 4
+function loginUser(){
+    let u = JSON.parse(localStorage.getItem("user"));
+    if(u && u.email===logEmail.value && u.pass===logPass.value && u.verified){
+        welcomeUser.textContent = "Welcome " + u.name;
+        show("voteSection");
+    } else {
+        logMsg.textContent = "Login failed or Email not verified";
+        logMsg.className = "error";
+    }
+}
+
+// STEP 5
+function castVote(){
+    let u = JSON.parse(localStorage.getItem("user"));
+    if(u.voted){
+        voteMsg.textContent = "You already voted";
+        voteMsg.className = "error";
+        return;
+    }
+
+    let c = document.querySelector('input[name="candidate"]:checked');
+    if(!c){
+        voteMsg.textContent = "Select a candidate";
+        voteMsg.className = "error";
+        return;
+    }
+
+    let v = JSON.parse(localStorage.getItem("votes"));
+    v[c.value]++;
+    localStorage.setItem("votes", JSON.stringify(v));
+
+    u.voted = true;
+    localStorage.setItem("user", JSON.stringify(u));
+
+    votesA.textContent = v.A;
+    votesB.textContent = v.B;
+    votesC.textContent = v.C;
+
+    show("resultSection");
+}
+
+function goBack(){
+    show("loginSection");
+}
+
+show("voterIdSection");
+</script>
+
+</body>
+</html>
